@@ -53,10 +53,7 @@ const Workspace = () => {
 
   const { data: userData, mutate } = useSWR('/api/users', fetcher);
   const { data: channelData } = useSWR(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher);
-  const { data: membersData } = useSWR(
-    userData && channel ? `/api/workspaces/${workspace}/channels/${channel}/members` : null,
-    fetcher,
-  );
+  const { data: membersData } = useSWR(userData ? `/api/workspaces/${workspace}/members` : null, fetcher);
 
   useEffect(() => {
     if (channelData && userData && socket) {
