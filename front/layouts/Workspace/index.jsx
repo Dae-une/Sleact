@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Navigate, Routes, Route, Link, useParams } from 'react-router-dom';
 import useSWR from 'swr';
 import axios from 'axios';
@@ -33,6 +33,7 @@ import {
   WorkspaceWrapper,
 } from '@layouts/Workspace/styles';
 import { Button, Input, Label } from '@pages/SignUp/styles';
+import useSocket from '@hooks/useSocket';
 
 const Channel = loadable(() => import('@pages/Channel'));
 const DirectMessage = loadable(() => import('@pages/DirectMessage'));
@@ -48,6 +49,7 @@ const Workspace = () => {
   const [newUrl, onChangeNewUrl, setNewUrl] = useInput('');
 
   const { workspace, channel } = useParams();
+  const [socket, diconnect] = useSocket(workspace);
 
   const { data: userData, mutate } = useSWR('/api/users', fetcher);
   const { data: channelData } = useSWR(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher);
@@ -55,6 +57,19 @@ const Workspace = () => {
     userData && channel ? `/api/workspaces/${workspace}/channels/${channel}/members` : null,
     fetcher,
   );
+
+  useEffect(() => {
+    if (channelData && userData && socket) {
+      console.log(socket);
+      socket?.emit('login', { id: userData?.id, channels: channelData.map((v) => v.id) });
+    }
+  }, [socket, channelData, userData]);
+
+  useEffect(() => {
+    return () => {
+      diconnect();
+    };
+  }, [workspace, diconnect]);
 
   const onLogOut = useCallback(() => {
     axios

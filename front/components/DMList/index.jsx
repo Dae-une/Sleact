@@ -5,39 +5,40 @@ import useSWR from 'swr';
 
 import { CollapseButton } from '@components/DMList/styles';
 import fetcher from '@utils/fetcher';
-// import useSocket from '@hooks/useSocket';
+import useSocket from '@hooks/useSocket';
 
 const DMList = () => {
+  const [channelCollapse, setChannelCollapse] = useState(false);
+  const [onlineList, setOnlineList] = useState([]);
+
   const { workspace } = useParams();
+  const [socket] = useSocket(workspace);
+
   const { data: userData } = useSWR('/api/users', fetcher, {
     dedupingInterval: 2000, // 2초
   });
   const { data: memberData } = useSWR(userData ? `/api/workspaces/${workspace}/members` : null, fetcher);
-  // const [socket] = useSocket(workspace);
-  const [channelCollapse, setChannelCollapse] = useState(false);
-  const [onlineList, setOnlineList] = useState([]);
 
   const toggleChannelCollapse = useCallback(() => {
     setChannelCollapse((prev) => !prev);
   }, []);
 
   useEffect(() => {
-    console.log('DMList: workspace 바꼈다', workspace);
     setOnlineList([]);
   }, [workspace]);
 
-  // useEffect(() => {
-  //   socket?.on('onlineList', (data) => {
-  //     setOnlineList(data);
-  //   });
-  //   // socket?.on('dm', onMessage);
-  //   // console.log('socket on dm', socket?.hasListeners('dm'), socket);
-  //   return () => {
-  //     // socket?.off('dm', onMessage);
-  //     // console.log('socket off dm', socket?.hasListeners('dm'));
-  //     socket?.off('onlineList');
-  //   };
-  // }, [socket]);
+  useEffect(() => {
+    socket?.on('onlineList', (data) => {
+      setOnlineList(data);
+    });
+    // socket?.on('dm', onMessage);
+    // console.log('socket on dm', socket?.hasListeners('dm'), socket);
+    return () => {
+      // socket?.off('dm', onMessage);
+      // console.log('socket off dm', socket?.hasListeners('dm'));
+      socket?.off('onlineList');
+    };
+  }, [socket]);
 
   return (
     <>
@@ -56,7 +57,7 @@ const DMList = () => {
           memberData?.map((member) => {
             const isOnline = onlineList.includes(member.id);
             return (
-              <NavLink key={member.id} activeClassName="selected" to={`/workspace/${workspace}/dm/${member.id}`}>
+              <NavLink key={member.id} to={`/workspace/${workspace}/dm/${member.id}`}>
                 <i
                   className={`c-icon p-channel_sidebar__presence_icon p-channel_sidebar__presence_icon--dim_enabled c-presence ${
                     isOnline ? 'c-presence--active c-icon--presence-online' : 'c-icon--presence-offline'

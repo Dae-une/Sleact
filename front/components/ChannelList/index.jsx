@@ -36,11 +36,7 @@ const ChannelList = () => {
         {!channelCollapse &&
           channelData?.map((channel) => {
             return (
-              <NavLink
-                key={channel.name}
-                activeClassName="selected"
-                to={`/workspace/${workspace}/channel/${channel.name}`}
-              >
+              <NavLink key={channel.name} to={`/workspace/${workspace}/channel/${channel.name}`}>
                 <span># {channel.name}</span>
               </NavLink>
             );
