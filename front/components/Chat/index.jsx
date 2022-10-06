@@ -6,7 +6,7 @@ import regexifyString from 'regexify-string';
 import { Link, useParams } from 'react-router-dom';
 
 const Chat = memo(({ data }) => {
-  const user = data.Sender;
+  const user = 'Sender' in data ? data.Sender : data.User;
 
   const { workspace } = useParams();
   const result = useMemo(
