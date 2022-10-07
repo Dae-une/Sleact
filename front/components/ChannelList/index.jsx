@@ -5,6 +5,7 @@ import useSWR from 'swr';
 
 import { CollapseButton } from '@components/DMList/styles';
 import fetcher from '@utils/fetcher';
+import EachChannel from '../EachCahnnel';
 // import useSocket from '@hooks/useSocket';
 
 const ChannelList = () => {
@@ -35,11 +36,7 @@ const ChannelList = () => {
       <div>
         {!channelCollapse &&
           channelData?.map((channel) => {
-            return (
-              <NavLink key={channel.name} to={`/workspace/${workspace}/channel/${channel.name}`}>
-                <span># {channel.name}</span>
-              </NavLink>
-            );
+            return <EachChannel key={channel.id} channel={channel} />;
           })}
       </div>
     </>

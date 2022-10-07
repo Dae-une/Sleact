@@ -52,6 +52,7 @@ const DirectMessage = () => {
           });
           return prevChatData;
         }, false).then(() => {
+          localStorage.setItem(`${workspace}-${id}`, new Date().getTime().toString());
           scrollbarRef.current?.scrollToBottom();
           setChat('');
         });
@@ -123,12 +124,17 @@ const DirectMessage = () => {
         }
       }
       axios.post(`/api/workspacs/${workspace}/dms/${id}/images`, formData).then(() => {
+        localStorage.setItem(`${workspace}-${id}`, new Date().getTime().toString());
         setDragOver(false);
         mutateChat();
       });
     },
     [mutateChat, workspace, id],
   );
+
+  useEffect(() => {
+    localStorage.setItem(`${workspace}-${id}`, new Date().getTime().toString());
+  }, [workspace, id]);
 
   const onDragOver = useCallback((e) => {
     e.preventDefault();

@@ -58,6 +58,7 @@ const Channel = () => {
           });
           return prevChatData;
         }, false).then(() => {
+          localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
           scrollbarRef.current?.scrollToBottom();
           setChat('');
         });
@@ -136,12 +137,17 @@ const Channel = () => {
         }
       }
       axios.post(`/api/workspaces/${workspace}/channels/${channel}/images`, formData).then(() => {
+        localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
         setDragOver(false);
         mutateChat();
       });
     },
     [mutateChat, workspace, channel],
   );
+
+  useEffect(() => {
+    localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
+  }, [workspace, channel]);
 
   const onDragOver = useCallback((e) => {
     e.preventDefault();
