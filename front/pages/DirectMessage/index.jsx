@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useRef, useEffect, useState } from 'react';
 import gravatar from 'gravatar';
 import useSWR from 'swr';
 import useSWRInfinite from 'swr/infinite';
@@ -13,10 +13,12 @@ import useInput from '@hooks/useInput';
 import makeSection from '@utils/makeSection';
 import useSocket from '@hooks/useSocket';
 
-import { Container, Header } from './styles';
+import { Container, Header, DragOver } from './styles';
 
 const DirectMessage = () => {
   const [chat, onChangeChat, setChat] = useInput('');
+  const [dragOver, setDragOver] = useState(false);
+
   const { workspace, id } = useParams();
   const scrollbarRef = useRef(null);
 
@@ -103,6 +105,36 @@ const DirectMessage = () => {
     [id, myData, mutateChat],
   );
 
+  const onDrop = useCallback(
+    (e) => {
+      e.preventDefault();
+      const formData = new FormData();
+      if (e.dataTransfer.items) {
+        for (let i = 0; i < e.dataTransfer.items.length; i++) {
+          if (e.dataTransfer.items[i].kind === 'file') {
+            const file = e.dataTransfer.items[i].getAsFile();
+            console.log(file.name);
+            formData.append('image', file);
+          }
+        }
+      } else {
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+          formData.append('image', e.dataTransfer.files[i]);
+        }
+      }
+      axios.post(`/api/workspacs/${workspace}/dms/${id}/images`, formData).then(() => {
+        setDragOver(false);
+        mutateChat();
+      });
+    },
+    [mutateChat, workspace, id],
+  );
+
+  const onDragOver = useCallback((e) => {
+    e.preventDefault();
+    setDragOver(true);
+  }, []);
+
   useEffect(() => {
     socket?.on('dm', onMessage);
     return () => {
@@ -117,7 +149,7 @@ const DirectMessage = () => {
   const chatSections = makeSection(chatData ? chatData.flat().reverse() : []);
 
   return (
-    <Container>
+    <Container onDrop={onDrop} onDragOver={onDragOver}>
       <Header>
         <img src={gravatar.url(userData.email, { s: '24px', d: 'retro' })} alt={userData.nickname} />
         <span>{userData.nickname}</span>
@@ -130,6 +162,7 @@ const DirectMessage = () => {
         isReachingEnd={isReachingEnd}
       />
       <ChatBox chat={chat} onChangeChat={onChangeChat} onSubmitForm={onSubmitForm} />
+      {dragOver && <DragOver>업로드!</DragOver>}
     </Container>
   );
 };
